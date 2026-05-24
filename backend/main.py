@@ -5,7 +5,8 @@ FastAPI Backend - Main Application Entry Point
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 import os
@@ -24,37 +25,37 @@ app = FastAPI(
     redoc_url="/api/redoc",
 )
 
-# ── Session Middleware (must come BEFORE CORSMiddleware) ──────────────────────
-# Uses signed HTTP-only cookies (itsdangerous HMAC).
-# The GitHub access token lives only here — never sent to the browser as JSON.
+# Session Middleware
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.SESSION_SECRET_KEY,
     session_cookie="pr_review_session",
-    max_age=86400,          # 24 hours
-    https_only=settings.ENV == "production",   # Secure flag in prod
-    same_site="lax",        # Protects against CSRF while allowing OAuth redirects
+    max_age=86400,
+    https_only=settings.ENV == "production",
+    same_site="lax",
 )
 
-# ── CORS Middleware ───────────────────────────────────────────────────────────
-# allow_credentials=True requires explicit origins (no wildcards).
-# Add your Vercel URL to ALLOWED_ORIGINS in .env for production.
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,          # Required for session cookies
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
 )
 
-# ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(health.router,      prefix="/api",              tags=["Health"])
-app.include_router(auth.router,        prefix="/api/auth",         tags=["Auth"])
-app.include_router(review.router,      prefix="/api/review",       tags=["Review"])
-app.include_router(monitoring.router,  prefix="/api/monitoring",   tags=["Monitoring & Firebase"])
+# Routers
+app.include_router(health.router, prefix="/api", tags=["Health"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(review.router, prefix="/api/review", tags=["Review"])
+app.include_router(
+    monitoring.router,
+    prefix="/api/monitoring",
+    tags=["Monitoring & Firebase"]
+)
 
-
+# Global Exception Handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     return JSONResponse(
@@ -62,22 +63,31 @@ async def global_exception_handler(request, exc):
         content={"error": "Internal server error", "detail": str(exc)},
     )
 
+# Serve React frontend assets
+app.mount(
+    "/assets",
+    StaticFiles(directory="frontend/dist/assets"),
+    name="assets"
+)
 
+# Serve React frontend
 @app.get("/")
-async def root():
-    return {
-        "message": "PR Review Assistant API",
-        "version": "1.0.0",
-        "status": "operational",
-        "docs": "/api/docs",
-    }
+async def serve_frontend():
+    return FileResponse("frontend/dist/index.html")
 
+# Health endpoint
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "ok",
+        "message": "CodeSentinel AI Running"
+    }
 
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=int(os.getenv("PORT", 7860)),
-        reload=os.getenv("ENV", "development") == "development",
+        reload=False,
         log_level="info",
     )
