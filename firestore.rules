@@ -1,0 +1,57 @@
+rules_version = '2';
+
+/**
+ * Firestore Security Rules — PR Review Assistant
+ * ─────────────────────────────────────────────
+ * Deploy these rules via:
+ *   firebase deploy --only firestore:rules
+ *
+ * Security model:
+ * - Users can only read/write their own data (users/{uid})
+ * - The private subcollection (GitHub tokens) is admin-only
+ * - The backend (Admin SDK) bypasses these rules — it has full access
+ * - Frontend only reads reviews/repos/settings for real-time subscriptions
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── User profiles ────────────────────────────────────────────
+    match /users/{uid} {
+      // Users can read/write only their own document
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // ── Private subcollection (encrypted GitHub tokens) ────────
+      // NEVER readable from the frontend — Admin SDK only
+      match /private/{document=**} {
+        allow read, write: if false;  // Backend Admin SDK bypasses this
+      }
+
+      // ── Repositories ──────────────────────────────────────────
+      match /repositories/{repoId} {
+        allow read:  if request.auth != null && request.auth.uid == uid;
+        // Writes go through the backend API (which validates GitHub ownership)
+        allow write: if false;
+      }
+
+      // ── Reviews ───────────────────────────────────────────────
+      match /reviews/{reviewId} {
+        allow read:  if request.auth != null && request.auth.uid == uid;
+        // Reviews are written by the backend Admin SDK only
+        allow write: if false;
+      }
+
+      // ── Settings ──────────────────────────────────────────────
+      match /settings/{document} {
+        allow read:  if request.auth != null && request.auth.uid == uid;
+        // Settings writes go through backend for validation
+        allow write: if false;
+      }
+    }
+
+    // ── Deny everything else ─────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

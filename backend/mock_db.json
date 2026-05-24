@@ -1,0 +1,26 @@
+{
+  "users": {
+    "atharva-kumbhar": {
+      "email": "",
+      "display_name": "atharva-kumbhar",
+      "photo_url": "https://avatars.githubusercontent.com/u/174936415?v=4",
+      "updated_at": "2026-05-24T15:37:50.175991+00:00",
+      "access_token": "gAAAAABqExOvJ-tVnPPPqr2tCWmTsHMMuKTiOlFZgYh4M_G0CutkMJBK_oAD6RJ5676kv9pnstSIwf0qlIOfktIB3izXAmewRA50o6vVrFBFxkDmTovXxhRwxDno_iAwvtv39E8BcEU4",
+      "created_at": "2026-05-23T21:35:50.832576+00:00",
+      "selected_model": "NVIDIA Llama 3.1 70B",
+      "monitoring_enabled": true
+    }
+  },
+  "repositories": {
+    "https:____github.com__atharva-kumbhar__default.git": {
+      "repo_full_name": "https://github.com/atharva-kumbhar/default.git",
+      "auto_review_enabled": true,
+      "webhook_active": false,
+      "last_reviewed": null,
+      "connected_user": "atharva-kumbhar",
+      "added_at": "2026-05-24T15:42:26.365052+00:00",
+      "updated_at": "2026-05-24T15:42:26.365052+00:00"
+    }
+  },
+  "review_history": {}
+}

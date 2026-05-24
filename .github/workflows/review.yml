@@ -1,0 +1,46 @@
+name: AI Pull Request Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  ai-review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install review script dependencies
+        run: pip install requests
+
+      - name: Fetch PR diff and run AI review
+        id: ai-review
+        env:
+          GITHUB_TOKEN:    ${{ secrets.GITHUB_TOKEN }}
+          REVIEW_API_URL:  ${{ secrets.REVIEW_API_URL }}
+          NVIDIA_API_KEY:  ${{ secrets.NVIDIA_API_KEY }}
+          PR_NUMBER:       ${{ github.event.pull_request.number }}
+          REPO_NAME:       ${{ github.repository }}
+          PR_TITLE:        ${{ github.event.pull_request.title }}
+          BASE_BRANCH:     ${{ github.event.pull_request.base.ref }}
+          HEAD_SHA:        ${{ github.event.pull_request.head.sha }}
+        run: python .github/scripts/review_pr.py
+
+      - name: Review Complete
+        if: always()
+        run: echo "AI PR Review step completed. Check the PR for inline review comments."

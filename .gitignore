@@ -1,0 +1,33 @@
+# ═══════════════════════════════════════════════════════════════════
+# Firebase Admin SDK — Service Account Key
+# ─────────────────────────────────────────────────────────────────
+# NEVER commit these files. They contain private keys with full
+# Firebase admin access to your project.
+# ═══════════════════════════════════════════════════════════════════
+
+# Firebase service account key files
+serviceAccountKey.json
+*serviceAccount*.json
+firebase-adminsdk-*.json
+firebase-key.json
+firebase_key.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+*.env
+
+# Node
+node_modules/
+dist/
+.next/
+
+# Build artifacts
+*.egg-info/
+.pytest_cache/
+.coverage
