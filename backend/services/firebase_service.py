@@ -113,9 +113,7 @@ def _init_firebase() -> bool:
         if firebase_service_account:
             firebase_dict = json.loads(firebase_service_account)
             cred = credentials.Certificate(firebase_dict)
-            else:
-                logger.warning(f"Firebase service account key not found: {sa_key_path}")
-                return False
+
         elif project_id and getattr(settings, "FIREBASE_PRIVATE_KEY", ""):
             # Build credential dict from individual env vars
             private_key = getattr(settings, "FIREBASE_PRIVATE_KEY", "").replace("\\n", "\n")
