@@ -71,7 +71,7 @@ def _get_webhook_url() -> str:
         )
         return derived
 
-    fallback = "http://localhost:8000/api/review/webhook"
+    fallback = "https://atharvark07-codesentinel-ai.hf.space"
     logger.error(
         f"Cannot resolve webhook URL — falling back to {fallback}. "
         "GitHub CANNOT reach localhost. Set WEBHOOK_URL in .env to a public ngrok URL."
