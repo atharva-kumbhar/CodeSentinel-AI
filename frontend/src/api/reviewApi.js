@@ -1,9 +1,8 @@
 import axios from 'axios'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'https://atharvark07-codesentinel-ai.hf.space'
+import { API_BASE_URL } from './config'
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE_URL,
   timeout: 300000,   // 5 minutes — large PRs + AI generation can take time
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,   // Required — sends session cookie with every request

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { reviewApi } from '../api/reviewApi'
+import { API_BASE_URL } from '../api/config'
 
 const AuthContext = createContext(null)
 
@@ -65,7 +66,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(() => {
     // Full-page redirect to backend → GitHub OAuth
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/github/login`
+    window.location.href = `${API_BASE_URL}/api/auth/github/login`
   }, [])
 
   const logout = useCallback(async () => {

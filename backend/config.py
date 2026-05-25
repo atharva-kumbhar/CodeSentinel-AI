@@ -2,6 +2,7 @@
 Application Configuration - Settings Management
 """
 
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings
 from typing import List
 import os
@@ -44,6 +45,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
+        "https://atharvark07-codesentinel-ai.hf.space",
     ]
 
     # Review Settings
@@ -74,6 +76,32 @@ class Settings(BaseSettings):
     # Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
     # If empty, tokens are masked (monitoring features limited).
     FIREBASE_TOKEN_ENCRYPTION_KEY: str = ""
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def parse_debug_flag(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"release", "prod", "production"}:
+                return False
+            if normalized in {"dev", "development"}:
+                return True
+        return value
+
+    @model_validator(mode="after")
+    def normalize_deployment_urls(self):
+        callback_path = "/api/auth/github/callback"
+
+        if self.GITHUB_CALLBACK_URL:
+            callback_url = self.GITHUB_CALLBACK_URL.rstrip("/")
+            if callback_url and callback_path not in callback_url:
+                callback_url = f"{callback_url}{callback_path}"
+            self.GITHUB_CALLBACK_URL = callback_url
+
+        if self.FRONTEND_URL:
+            self.FRONTEND_URL = self.FRONTEND_URL.rstrip("/")
+
+        return self
 
     class Config:
         env_file = ".env"

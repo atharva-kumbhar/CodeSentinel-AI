@@ -8,9 +8,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
+import { API_BASE_URL } from '../api/config'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const api = axios.create({ baseURL: API, withCredentials: true })
+const api = axios.create({ baseURL: API_BASE_URL, withCredentials: true })
 
 export function useMonitoring() {
   const { user } = useAuth()
