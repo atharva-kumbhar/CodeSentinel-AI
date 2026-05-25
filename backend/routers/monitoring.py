@@ -231,6 +231,7 @@ async def add_repository(request: Request, body: AddRepoRequest):
     if not success:
         raise HTTPException(500, "Failed to save repository configuration.")
 
+
     return {
         "status": "added",
         "repo": body.repo_full_name,
