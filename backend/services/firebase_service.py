@@ -107,15 +107,12 @@ def _init_firebase() -> bool:
         from firebase_admin import credentials, firestore
         from config import settings
 
-        sa_key_path = getattr(settings, "FIREBASE_SERVICE_ACCOUNT_KEY_PATH", "")
-        project_id  = getattr(settings, "FIREBASE_PROJECT_ID", "")
-
-        if sa_key_path:
-            resolved_sa_key_path = sa_key_path
-            if not os.path.isabs(resolved_sa_key_path) and not os.path.exists(resolved_sa_key_path):
-                resolved_sa_key_path = os.path.join(BACKEND_DIR, sa_key_path)
-            if os.path.exists(resolved_sa_key_path):
-                cred = credentials.Certificate(resolved_sa_key_path)
+        firebase_service_account = os.getenv("FIREBASE_SERVICE_ACCOUNT")
+        project_id = getattr(settings, "FIREBASE_PROJECT_ID", "")
+        
+        if firebase_service_account:
+            firebase_dict = json.loads(firebase_service_account)
+            cred = credentials.Certificate(firebase_dict)
             else:
                 logger.warning(f"Firebase service account key not found: {sa_key_path}")
                 return False
