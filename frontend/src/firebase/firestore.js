@@ -22,17 +22,17 @@ import { db } from './config'
 export function subscribeToReviews(uid, callback, maxItems = 20) {
   if (!uid) return () => {}
   const q = query(
-    collection(db, 'users', uid, 'reviews'),
-    orderBy('created_at', 'desc'),
+    collection(db, 'review_history'),
+    where('connected_user', '==', uid),
+    orderBy('review_time', 'desc'),
     limit(maxItems),
   )
   return onSnapshot(q, (snapshot) => {
     const reviews = snapshot.docs.map((d) => ({
       id: d.id,
       ...d.data(),
-      // Convert Firestore timestamps to ISO strings for React rendering
-      created_at: d.data().created_at?.toDate?.()?.toISOString() || null,
-      updated_at: d.data().updated_at?.toDate?.()?.toISOString() || null,
+      created_at: d.data().created_at || null,
+      updated_at: d.data().updated_at || null,
     }))
     callback(reviews)
   }, (err) => {
@@ -47,8 +47,9 @@ export function subscribeToReviews(uid, callback, maxItems = 20) {
 export function subscribeToRepos(uid, callback) {
   if (!uid) return () => {}
   const q = query(
-    collection(db, 'users', uid, 'repositories'),
-    where('enabled', '==', true),
+    collection(db, 'repositories'),
+    where('connected_user', '==', uid),
+    where('auto_review_enabled', '==', true),
   )
   return onSnapshot(q, (snapshot) => {
     const repos = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -65,9 +66,9 @@ export function subscribeToRepos(uid, callback) {
  */
 export function subscribeToReview(uid, reviewId, callback) {
   if (!uid || !reviewId) return () => {}
-  const ref = doc(db, 'users', uid, 'reviews', reviewId)
+  const ref = doc(db, 'review_history', reviewId)
   return onSnapshot(ref, (d) => {
-    if (d.exists()) {
+    if (d.exists() && d.data().connected_user === uid) {
       callback({ id: d.id, ...d.data() })
     }
   }, (err) => {
@@ -80,7 +81,7 @@ export function subscribeToReview(uid, reviewId, callback) {
  */
 export function subscribeToSettings(uid, callback) {
   if (!uid) return () => {}
-  const ref = doc(db, 'users', uid, 'settings', 'preferences')
+  const ref = doc(db, 'users', uid)
   return onSnapshot(ref, (d) => {
     callback(d.exists() ? d.data() : {})
   }, (err) => {
@@ -99,7 +100,10 @@ export async function fetchUser(uid) {
 
 export async function fetchRepos(uid) {
   if (!uid) return []
-  const q = query(collection(db, 'users', uid, 'repositories'))
+  const q = query(
+    collection(db, 'repositories'),
+    where('connected_user', '==', uid)
+  )
   const snap = await getDocs(q)
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }
@@ -107,14 +111,15 @@ export async function fetchRepos(uid) {
 export async function fetchReviews(uid, maxItems = 20) {
   if (!uid) return []
   const q = query(
-    collection(db, 'users', uid, 'reviews'),
-    orderBy('created_at', 'desc'),
+    collection(db, 'review_history'),
+    where('connected_user', '==', uid),
+    orderBy('review_time', 'desc'),
     limit(maxItems),
   )
   const snap = await getDocs(q)
   return snap.docs.map((d) => ({
     id: d.id,
     ...d.data(),
-    created_at: d.data().created_at?.toDate?.()?.toISOString() || null,
+    created_at: d.data().created_at || null,
   }))
 }

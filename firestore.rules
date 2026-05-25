@@ -16,7 +16,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── User profiles ────────────────────────────────────────────
+    // ── User profiles (Root Collection) ──────────────────────────
     match /users/{uid} {
       // Users can read/write only their own document
       allow read, write: if request.auth != null && request.auth.uid == uid;
@@ -26,27 +26,20 @@ service cloud.firestore {
       match /private/{document=**} {
         allow read, write: if false;  // Backend Admin SDK bypasses this
       }
+    }
 
-      // ── Repositories ──────────────────────────────────────────
-      match /repositories/{repoId} {
-        allow read:  if request.auth != null && request.auth.uid == uid;
-        // Writes go through the backend API (which validates GitHub ownership)
-        allow write: if false;
-      }
+    // ── Repositories (Root Collection) ────────────────────────────
+    match /repositories/{repoId} {
+      allow read:  if request.auth != null && resource.data.connected_user == request.auth.uid;
+      // Writes go through the backend API (which validates GitHub ownership)
+      allow write: if false;
+    }
 
-      // ── Reviews ───────────────────────────────────────────────
-      match /reviews/{reviewId} {
-        allow read:  if request.auth != null && request.auth.uid == uid;
-        // Reviews are written by the backend Admin SDK only
-        allow write: if false;
-      }
-
-      // ── Settings ──────────────────────────────────────────────
-      match /settings/{document} {
-        allow read:  if request.auth != null && request.auth.uid == uid;
-        // Settings writes go through backend for validation
-        allow write: if false;
-      }
+    // ── Reviews / Review History (Root Collection) ────────────────
+    match /review_history/{reviewId} {
+      allow read:  if request.auth != null && resource.data.connected_user == request.auth.uid;
+      // Reviews are written by the backend Admin SDK only
+      allow write: if false;
     }
 
     // ── Deny everything else ─────────────────────────────────────
