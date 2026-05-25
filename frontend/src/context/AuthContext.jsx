@@ -66,7 +66,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(() => {
     // Full-page redirect to backend → GitHub OAuth
-    window.location.href = `${API_BASE_URL}/api/auth/github/login`
+    const loginUrl = `${API_BASE_URL}/api/auth/github/login`
+    if (window.top && window.top !== window.self) {
+      window.top.location.href = loginUrl
+      return
+    }
+    window.location.href = loginUrl
   }, [])
 
   const logout = useCallback(async () => {
