@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { reviewApi } from '../api/reviewApi'
-import { API_BASE_URL } from '../api/config'
-
+  
 const AuthContext = createContext(null)
 
 /**
@@ -65,8 +64,9 @@ export function AuthProvider({ children }) {
   }, [fetchCurrentUser])
 
   const login = useCallback(() => {
+    
     // Full-page redirect to backend → GitHub OAuth
-    const loginUrl = `${API_BASE_URL}/api/auth/github/login`
+    const loginUrl = `https://atharvark07-codesentinel-ai.hf.space/api/auth/github/login`
     if (window.top && window.top !== window.self) {
       window.top.location.href = loginUrl
       return

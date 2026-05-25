@@ -209,6 +209,10 @@ async def add_repository(request: Request, body: AddRepoRequest):
 
     logger.info(f"Adding monitored repo '{body.repo_full_name}' and creating webhook at '{webhook_url}'")
     
+    # Store the user's GitHub OAuth token (needed for webhook auto-comments)
+    firebase_service.store_github_token(uid, access_token)
+    logger.info(f"[Token Store] Saved GitHub OAuth token for user {uid} (auto-comment source)")
+    
     # Register webhook on GitHub
     webhook_success = github_client.create_webhook(
         repo_name=body.repo_full_name,
@@ -417,6 +421,10 @@ async def save_monitoring_config(request: Request, body: MonitoringConfigRequest
     access_token = request.session.get("access_token")
     if not access_token:
         raise HTTPException(status_code=400, detail="Active GitHub OAuth session required.")
+
+    # Store the user's GitHub OAuth token (needed for webhook auto-comments)
+    firebase_service.store_github_token(uid, access_token)
+    logger.info(f"[Token Store] Saved GitHub OAuth token for user {uid} during monitoring config setup")
 
     github_client = GitHubService(token=access_token)
     all_repos = github_client.list_user_repos()

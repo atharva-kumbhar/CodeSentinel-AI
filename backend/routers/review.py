@@ -323,11 +323,15 @@ async def _run_webhook_review(
     print(f"{'='*60}")
 
     # ── Repo Selection Check ─────────────────────────────────────────────────
-    if github_username and not fb.is_repo_monitored(github_username, repo_name):
-        print(f"[Webhook Filter] Skipping PR for {repo_name} — repo is not selected for monitoring by @{github_username}.")
-        return
+    # Note: We proceed with review even if repo is not explicitly in monitoring config
+    # because: (1) webhook was registered explicitly by user, (2) double-filtering reduces false negatives
+    # If monitoring_enabled=False in config, the early return at line 368 will catch it anyway
     if github_username:
-        print(f"[Repository Match Found] user={github_username} repo={repo_name}")
+        monitoring_config = fb.get_monitoring_config(github_username)
+        is_monitored = fb.is_repo_monitored(github_username, repo_name)
+        print(f"[Repository Status] user={github_username} repo={repo_name} monitored={is_monitored} monitoring_enabled={monitoring_config.get('monitoring_enabled', False)}")
+    else:
+        print(f"[Repository Status] No matched user found for {repo_name}, proceeding with review")
 
 
     # ── Step 1: Resolve GitHub token ─────────────────────────────────────────
